@@ -4,6 +4,15 @@ import { piramydFetch, PiramydApiError } from "../api/client.js";
 import { buildAudioTranscriptionForm } from "../api/multipart.js";
 import type { Config } from "../config.js";
 
+const AUDIO_MIME: Record<string, string> = {
+  mp3: "audio/mpeg",
+  opus: "audio/ogg",
+  aac: "audio/aac",
+  flac: "audio/flac",
+  wav: "audio/wav",
+  pcm: "audio/pcm",
+};
+
 export function registerAudioTools(server: McpServer, config: Config): void {
   server.tool(
     "piramyd_text_to_speech",
@@ -17,6 +26,7 @@ export function registerAudioTools(server: McpServer, config: Config): void {
     },
     async ({ model, input, voice, speed, response_format }) => {
       try {
+        const fmt = response_format ?? "mp3";
         const { data: base64Audio } = await piramydFetch<{ data: string }>("/v1/audio/speech", {
           method: "POST",
           body: { model, input, voice, speed, response_format },
@@ -24,10 +34,15 @@ export function registerAudioTools(server: McpServer, config: Config): void {
           returnBinary: true,
           config,
         });
+        const mimeType = AUDIO_MIME[fmt] ?? "audio/mpeg";
         return {
           content: [{
-            type: "text",
-            text: `data:audio/${response_format ?? "mp3"};base64,${base64Audio}`,
+            type: "resource",
+            resource: {
+              uri: `data:${mimeType};base64,${base64Audio}`,
+              mimeType,
+              blob: base64Audio,
+            },
           }],
         };
       } catch (err) {

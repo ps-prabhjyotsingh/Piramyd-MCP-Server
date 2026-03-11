@@ -4,6 +4,17 @@ import { piramydFetch, PiramydApiError } from "../api/client.js";
 import { buildImageEditForm } from "../api/multipart.js";
 import type { Config } from "../config.js";
 
+interface ImageGenerationData {
+  url?: string;
+  b64_json?: string;
+  revised_prompt?: string;
+}
+
+interface ImageGenerationResponse {
+  data?: ImageGenerationData[];
+  [key: string]: unknown;
+}
+
 export function registerImageTools(server: McpServer, config: Config): void {
   server.tool(
     "piramyd_generate_image",
@@ -20,12 +31,27 @@ export function registerImageTools(server: McpServer, config: Config): void {
     },
     async (params) => {
       try {
-        const result = await piramydFetch<unknown>("/v1/images/generations", {
+        const result = await piramydFetch<ImageGenerationResponse>("/v1/images/generations", {
           method: "POST",
           body: params,
           authType: "api-key",
           config,
         });
+
+        // Return image content blocks when b64_json is requested
+        if (params.response_format === "b64_json" && Array.isArray(result.data)) {
+          const content: Array<{ type: "text"; text: string } | { type: "image"; data: string; mimeType: string }> = [];
+          for (const item of result.data) {
+            if (item.b64_json) {
+              if (item.revised_prompt) {
+                content.push({ type: "text", text: `Revised prompt: ${item.revised_prompt}` });
+              }
+              content.push({ type: "image", data: item.b64_json, mimeType: "image/png" });
+            }
+          }
+          if (content.length > 0) return { content };
+        }
+
         return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
       } catch (err) {
         const message = err instanceof PiramydApiError ? err.message : String(err);
@@ -49,12 +75,27 @@ export function registerImageTools(server: McpServer, config: Config): void {
     async (params) => {
       try {
         const formData = buildImageEditForm(params);
-        const result = await piramydFetch<unknown>("/v1/images/edits", {
+        const result = await piramydFetch<ImageGenerationResponse>("/v1/images/edits", {
           method: "POST",
           formData,
           authType: "api-key",
           config,
         });
+
+        // Return image content blocks when b64_json is requested
+        if (params.response_format === "b64_json" && Array.isArray(result.data)) {
+          const content: Array<{ type: "text"; text: string } | { type: "image"; data: string; mimeType: string }> = [];
+          for (const item of result.data) {
+            if (item.b64_json) {
+              if (item.revised_prompt) {
+                content.push({ type: "text", text: `Revised prompt: ${item.revised_prompt}` });
+              }
+              content.push({ type: "image", data: item.b64_json, mimeType: "image/png" });
+            }
+          }
+          if (content.length > 0) return { content };
+        }
+
         return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
       } catch (err) {
         const message = err instanceof PiramydApiError ? err.message : String(err);

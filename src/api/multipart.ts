@@ -68,12 +68,26 @@ export function buildAnimateImageForm(params: AnimateImageParams): FormData {
   return form;
 }
 
+const EXTENSION_MIME: Record<string, string> = {
+  mp3: "audio/mpeg",
+  mp4: "audio/mp4",
+  mpeg: "audio/mpeg",
+  mpga: "audio/mpeg",
+  m4a: "audio/mp4",
+  ogg: "audio/ogg",
+  wav: "audio/wav",
+  webm: "audio/webm",
+  flac: "audio/flac",
+};
+
 export function buildAudioTranscriptionForm(params: AudioTranscriptionParams): FormData {
   const form = new FormData();
 
   const audioBuffer = Buffer.from(params.file, "base64");
   const filename = params.filename ?? "audio.mp3";
-  const audioBlob = new Blob([audioBuffer], { type: "audio/mpeg" });
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "mp3";
+  const mimeType = EXTENSION_MIME[ext] ?? "audio/mpeg";
+  const audioBlob = new Blob([audioBuffer], { type: mimeType });
   form.append("file", audioBlob, filename);
 
   form.append("model", params.model);
