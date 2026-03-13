@@ -142,6 +142,67 @@ Then connect Warp to `http://localhost:3000/mcp`.
 
 A health check endpoint is available at `GET /health`.
 
+
+### Docker
+
+Run without installing Node.js — one command to start:
+
+```bash
+docker run --rm -e PIRAMYD_API_KEY=your-key -p 3000:3000 piramyd-mcp
+```
+
+**Build the image first:**
+
+```bash
+make build
+# or directly:
+docker build -t piramyd-mcp:latest .
+```
+
+**Run with Makefile (echoes URLs and Claude Code config):**
+
+```bash
+export PIRAMYD_API_KEY=your-key
+make run
+```
+
+**Run with docker compose (reads `.env` automatically):**
+
+```bash
+cp .env.example .env   # add your PIRAMYD_API_KEY
+make up                # start detached
+make logs              # tail logs
+make down              # stop
+```
+
+**Connect from Claude Code:**
+
+```bash
+claude mcp add --transport http piramyd http://localhost:3000/mcp
+```
+
+Or add to `~/.claude.json` manually:
+
+```json
+{
+  "mcpServers": {
+    "piramyd": {
+      "type": "http",
+      "url": "http://localhost:3000/mcp"
+    }
+  }
+}
+```
+
+**Environment variables for Docker:**
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `PIRAMYD_API_KEY` | Yes | — | API key for generation endpoints |
+| `PIRAMYD_JWT_TOKEN` | No | — | JWT for management endpoints |
+| `PIRAMYD_API_BASE_URL` | No | `https://api.piramyd.cloud` | Override API base URL |
+| `PORT` | No | `3000` | HTTP port (host and container) |
+
 ### stdio (default)
 
 ```bash
