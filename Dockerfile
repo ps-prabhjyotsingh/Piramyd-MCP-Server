@@ -10,6 +10,7 @@ RUN npm run build
 # ── Stage 2: production ───────────────────────────────────────────────────────
 FROM node:20-alpine AS production
 WORKDIR /app
+LABEL org.opencontainers.image.source https://github.com/ps-prabhjyotsingh/Piramyd-MCP-Server
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
