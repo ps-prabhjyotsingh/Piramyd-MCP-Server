@@ -93,42 +93,7 @@ cp .env.example .env
 | `LOG_LEVEL` | No | `error` | `silent` \| `error` \| `info` \| `debug` |
 
 ## Usage
-
-### Claude Code CLI
-
-Add to your `~/.claude.json` (global) or project `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "piramyd": {
-      "command": "npx",
-      "args": ["piramyd-mcp"],
-      "env": {
-        "PIRAMYD_API_KEY": "your-api-key-here"
-      }
-    }
-  }
-}
-```
-
-Or with a local build:
-
-```json
-{
-  "mcpServers": {
-    "piramyd": {
-      "command": "node",
-      "args": ["/path/to/piramyd-mcp/dist/index.js"],
-      "env": {
-        "PIRAMYD_API_KEY": "your-api-key-here"
-      }
-    }
-  }
-}
-```
-
-### Warp.dev (HTTP mode)
+### Warp.dev or Claude Code (HTTP mode)
 
 Start the server in HTTP mode:
 
@@ -145,34 +110,10 @@ A health check endpoint is available at `GET /health`.
 
 ### Docker
 
-Run without installing Node.js — one command to start:
+Run without installing Node.js or cloning the repo — one command to start:
 
 ```bash
-docker run --rm -e PIRAMYD_API_KEY=your-key -p 3000:3000 piramyd-mcp
-```
-
-**Build the image first:**
-
-```bash
-make build
-# or directly:
-docker build -t piramyd-mcp:latest .
-```
-
-**Run with Makefile (echoes URLs and Claude Code config):**
-
-```bash
-export PIRAMYD_API_KEY=your-key
-make run
-```
-
-**Run with docker compose (reads `.env` automatically):**
-
-```bash
-cp .env.example .env   # add your PIRAMYD_API_KEY
-make up                # start detached
-make logs              # tail logs
-make down              # stop
+docker run --rm -e PIRAMYD_API_KEY=your-key -p 3000:3000 ghcr.io/ps-prabhjyotsingh/piramyd-mcp:latest
 ```
 
 **Connect from Claude Code:**
@@ -202,6 +143,31 @@ Or add to `~/.claude.json` manually:
 | `PIRAMYD_JWT_TOKEN` | No | — | JWT for management endpoints |
 | `PIRAMYD_API_BASE_URL` | No | `https://api.piramyd.cloud` | Override API base URL |
 | `PORT` | No | `3000` | HTTP port (host and container) |
+
+
+**Building the image:**
+
+```bash
+make build
+# or directly:
+docker build -t piramyd-mcp:latest .
+```
+
+**Run with Makefile (echoes URLs and Claude Code config):**
+
+```bash
+export PIRAMYD_API_KEY=your-key
+make run
+```
+
+**Run with docker compose (reads `.env` automatically):**
+
+```bash
+cp .env.example .env   # add your PIRAMYD_API_KEY
+make up                # start detached
+make logs              # tail logs
+make down              # stop
+```
 
 ### stdio (default)
 
